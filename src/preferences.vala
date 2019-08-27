@@ -80,7 +80,7 @@ class PrefDialog : Dialog {
 
         var color_table = new Grid();
         color_table.set_column_spacing( 8 );
-        color_table.set_column_homogenous( FALSE );
+        color_table.set_column_homogeneous( FALSE );
         var color_label = new Label("Color:");
         var alpha_label = new Label("Alpha:");
         color_table.attach(color_label, 0, 0, 1, 1);
