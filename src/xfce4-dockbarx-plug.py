@@ -219,9 +219,8 @@ class DockBarXFCEPlug(Gtk.Plug):
         container.show_all()
 
     # Imitates xfce4-panel's expose event.
-    def do_draw (self, event):
+    def do_draw (self, widget, ctx):
         self.window.set_back_pixmap(None, False)
-        ctx = self.window.cairo_create()
         ctx.set_antialias(cairo.ANTIALIAS_NONE)
         ctx.set_operator(cairo.OPERATOR_SOURCE)
         ctx.rectangle(event.area.x, event.area.y,
