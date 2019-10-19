@@ -25,9 +25,9 @@ sys.stdout = StdOutWrapper()
 import io
 import traceback
 
-import pygtk
-pygtk.require("2.0")
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 import cairo
 import dbus
 
@@ -36,7 +36,7 @@ from optparse import OptionParser
 
 # A very minimal plug application that loads DockbarX
 # so that the embed plugin can, well, embed it.
-class DockBarXFCEPlug(gtk.Plug):
+class DockBarXFCEPlug(Gtk.Plug):
     # We want to do our own expose instead of the default.
     __gsignals__ = {"expose-event": "override"}
 
@@ -59,11 +59,11 @@ class DockBarXFCEPlug(gtk.Plug):
         if options.plugin_id == -1:
             sys.exit("We need to know the plugin id of the DBX socket.")
         
-        gtk.Plug.__init__(self, int(options.socket))
+        GObject.GObject.__init__(self, int(options.socket))
         self.connect("destroy", self.destroy)
         self.get_settings().connect("notify::gtk-theme-name",self.theme_changed)
         self.set_app_paintable(True)
-        gtk_screen = gtk.gdk.screen_get_default()
+        gtk_screen = Gdk.Screen.get_default()
         colormap = gtk_screen.get_rgba_colormap()
         if colormap is None: colormap = gtk_screen.get_rgb_colormap()
         self.set_colormap(colormap)
@@ -116,7 +116,7 @@ class DockBarXFCEPlug(gtk.Plug):
             elif "block-autohide" in prop:
                 pass  # This is one way comm from the plug to the socket.
             elif self.mode == 0 and ("color" in prop or "alpha" in prop):
-                self.color_pattern(gtk.gdk.color_parse(self.xfconf_get_dbx(
+                self.color_pattern(Gdk.color_parse(self.xfconf_get_dbx(
                  "color", "#000")), self.xfconf_get_dbx("alpha", 100))
             elif self.mode == 1 and ("image" in prop or "offset" in prop):
                 self.image_pattern(self.xfconf_get_dbx("image", ""))
@@ -150,13 +150,13 @@ class DockBarXFCEPlug(gtk.Plug):
         if self.mode == 1:
             self.image_pattern(self.xfconf_get_dbx("image", ""))
         elif self.mode == 0:
-            self.color_pattern(gtk.gdk.color_parse(self.xfconf_get_dbx(
+            self.color_pattern(Gdk.color_parse(self.xfconf_get_dbx(
              "color", "#000")), self.xfconf_get_dbx("alpha", 100))
         else:
             self.pattern_from_dbus()
     
     def color_pattern (self, color, alpha):
-        if gtk.gdk.screen_get_default().get_rgba_colormap() is None: alpha = 100
+        if Gdk.Screen.get_default().get_rgba_colormap() is None: alpha = 100
         self.pattern = cairo.SolidPattern(color.red_float, color.green_float,
          color.blue_float, alpha / 100.0)
 
@@ -184,10 +184,10 @@ class DockBarXFCEPlug(gtk.Plug):
             self.image_pattern(image)
         elif bgstyle == 1:
             col = self.xfconf_get_panel("background-color", [0, 0, 0, 0])
-            self.color_pattern(gtk.gdk.Color(col[0], col[1], col[2]), alpha)
+            self.color_pattern(Gdk.Color(col[0], col[1], col[2]), alpha)
         else:
             style = self.get_style()
-            self.color_pattern(style.bg[gtk.STATE_NORMAL], alpha)
+            self.color_pattern(style.bg[Gtk.StateType.NORMAL], alpha)
     
     def get_orient (self):
         self.orient = self.xfconf_get_dbx("orient", "down")
@@ -233,9 +233,9 @@ class DockBarXFCEPlug(gtk.Plug):
             self.propagate_expose(self.get_child(), event)
 
     def destroy (self, widget, data=None):
-        gtk.main_quit()
+        Gtk.main_quit()
 
 
 if __name__ == '__main__':
     dbx = DockBarXFCEPlug()
-    gtk.main()
+    Gtk.main()
