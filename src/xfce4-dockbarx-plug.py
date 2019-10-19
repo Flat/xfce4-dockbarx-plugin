@@ -27,7 +27,7 @@ import traceback
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 import cairo
 import dbus
 
@@ -38,7 +38,7 @@ from optparse import OptionParser
 # so that the embed plugin can, well, embed it.
 class DockBarXFCEPlug(Gtk.Plug):
     # We want to do our own expose instead of the default.
-    __gsignals__ = {"expose-event": "override"}
+    __gsignals__ = {"draw": "override"}
 
     def __init__ (self):
         import dockbarx.dockbar as db
@@ -59,14 +59,14 @@ class DockBarXFCEPlug(Gtk.Plug):
         if options.plugin_id == -1:
             sys.exit("We need to know the plugin id of the DBX socket.")
         
-        GObject.GObject.__init__(self, int(options.socket))
+        Gtk.Plug.__init__(self, int(options.socket))
         self.connect("destroy", self.destroy)
         self.get_settings().connect("notify::gtk-theme-name",self.theme_changed)
         self.set_app_paintable(True)
         gtk_screen = Gdk.Screen.get_default()
-        colormap = gtk_screen.get_rgba_colormap()
-        if colormap is None: colormap = gtk_screen.get_rgb_colormap()
-        self.set_colormap(colormap)
+        visual = gtk_screen.get_rgba_visual()
+        if visual is None: visual = gtk_screen.get_rgb_visual()
+        self.set_visual(visual)
         
         # This should cause the widget to get themed like a panel.
         self.set_name("Xfce4PanelDockBarX")
@@ -156,9 +156,9 @@ class DockBarXFCEPlug(Gtk.Plug):
             self.pattern_from_dbus()
     
     def color_pattern (self, color, alpha):
-        if Gdk.Screen.get_default().get_rgba_colormap() is None: alpha = 100
-        self.pattern = cairo.SolidPattern(color.red_float, color.green_float,
-         color.blue_float, alpha / 100.0)
+        if Gdk.Screen.get_default().get_rgba_visual() is None: alpha = 100
+        self.pattern = cairo.SolidPattern(color.red, color.green,
+         color.blue, alpha / 100.0)
 
     def image_pattern (self, image):
         self.offset = self.xfconf_get_dbx("offset", 0)
@@ -186,8 +186,8 @@ class DockBarXFCEPlug(Gtk.Plug):
             col = self.xfconf_get_panel("background-color", [0, 0, 0, 0])
             self.color_pattern(Gdk.Color(col[0], col[1], col[2]), alpha)
         else:
-            style = self.get_style()
-            self.color_pattern(style.bg[Gtk.StateType.NORMAL], alpha)
+            style = self.get_style_context()
+            self.color_pattern(style.get_background_color(Gtk.StateType.NORMAL), alpha)
     
     def get_orient (self):
         self.orient = self.xfconf_get_dbx("orient", "down")
@@ -219,7 +219,7 @@ class DockBarXFCEPlug(Gtk.Plug):
         container.show_all()
 
     # Imitates xfce4-panel's expose event.
-    def do_expose_event (self, event):
+    def do_draw (self, event):
         self.window.set_back_pixmap(None, False)
         ctx = self.window.cairo_create()
         ctx.set_antialias(cairo.ANTIALIAS_NONE)
