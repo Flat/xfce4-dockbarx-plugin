@@ -32,6 +32,7 @@ import cairo
 import dbus
 
 from optparse import OptionParser
+import os
 
 
 # A very minimal plug application that loads DockbarX
@@ -172,7 +173,7 @@ class DockBarXFCEPlug(Gtk.Plug):
             self.pattern.set_matrix(matrix)
         except:
             traceback.print_exc()
-            print "Failed to load image."
+            print("Failed to load image.")
             self.pattern_from_dbus()
             return
     

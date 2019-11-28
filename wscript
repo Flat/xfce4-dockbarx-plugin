@@ -22,7 +22,7 @@
 
 # For creating a source archive.
 APPNAME = 'xfce4-dockbarx-plugin'
-VERSION = '0.5'
+VERSION = '0.6'
 
 # Required waf stuff.
 top = '.'
@@ -38,14 +38,14 @@ def configure (ctx):
         ctx.options.prefix += ctx.options.prefix[-1]
 
     # Check for required stuff.
-    ctx.load('compiler_c misc')
-    ctx.load('vala', funs='')
-    ctx.check_vala()
+    ctx.load('compiler_c')
+    ctx.load('vala')
+    ctx.env.append_value('CFLAGS', '-DGETTEXT_PACKAGE="gtk30"')
     args = '--cflags --libs'
     ctx.find_program('dockx')
-    ctx.check_cfg(package = 'glib-2.0', atleast_version = '2.42',
+    ctx.check_cfg(package = 'glib-2.0', atleast_version = '2.62',
         uselib_store = 'GLIB', mandatory = True, args = args)
-    ctx.check_cfg(package = 'gtk+-3.0', atleast_version = '3.22',
+    ctx.check_cfg(package = 'gtk+-3.0', atleast_version = '3.24',
         uselib_store = 'GTK', mandatory = True, args = args)
     ctx.check_cfg(package = 'libxfce4panel-2.0', atleast_version = '4.14',
         uselib_store = 'XFCE4PANEL', mandatory = True, args = args)
@@ -61,7 +61,7 @@ def build (ctx):
         packages     = 'glib-2.0 gtk+-3.0 libxfce4panel-2.0 libxfconf-0',
         target       = 'dockbarx',
         install_path = '${PREFIX}/lib/xfce4/panel/plugins/',
-        uselib       = 'GLIB GTK XFCE4PANEL XFCONF')
+        use       = 'GLIB GTK XFCE4PANEL XFCONF')
 
     # Install other files.
     ctx(
